@@ -1,0 +1,127 @@
+{
+  "project_info": {
+    "project_number": "672291326702",
+    "firebase_url": "https://eatitv2-e7710-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "eatitv2-e7710",
+    "storage_bucket": "eatitv2-e7710.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:672291326702:android:3d135f2e311c106ad041ff",
+        "android_client_info": {
+          "package_name": "com.example.foodappsever"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "672291326702-i8pjftr5uamobqa9pe2g3cs793k0e7ue.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD0-EVR7pMF5V9yWTR_l-v3I995a2exp-I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "672291326702-i8pjftr5uamobqa9pe2g3cs793k0e7ue.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:672291326702:android:3eaf29c6f41978f1d041ff",
+        "android_client_info": {
+          "package_name": "com.vuquochung.foodapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "672291326702-i8pjftr5uamobqa9pe2g3cs793k0e7ue.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD0-EVR7pMF5V9yWTR_l-v3I995a2exp-I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "672291326702-i8pjftr5uamobqa9pe2g3cs793k0e7ue.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:672291326702:android:f12e75fe824d6fc2d041ff",
+        "android_client_info": {
+          "package_name": "com.vuquochung.foodappshipper"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "672291326702-i8pjftr5uamobqa9pe2g3cs793k0e7ue.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD0-EVR7pMF5V9yWTR_l-v3I995a2exp-I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "672291326702-i8pjftr5uamobqa9pe2g3cs793k0e7ue.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:672291326702:android:bbe90c706a3d9e54d041ff",
+        "android_client_info": {
+          "package_name": "com.vuquochung.foodshipper"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "672291326702-i8pjftr5uamobqa9pe2g3cs793k0e7ue.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD0-EVR7pMF5V9yWTR_l-v3I995a2exp-I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "672291326702-i8pjftr5uamobqa9pe2g3cs793k0e7ue.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

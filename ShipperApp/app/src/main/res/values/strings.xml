@@ -12,4 +12,6 @@
     <string name="menu_gallery">Gallery</string>
     <string name="menu_slideshow">Slideshow</string>
     <string name="title_activity_shipping">ShippingActivity</string>
+    <string name="title_activity_shipping1">ShippingActivity1</string>
+    <string name="title_activity_maps">MapsActivity</string>
 </resources>

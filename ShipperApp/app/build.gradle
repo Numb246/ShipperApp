@@ -61,7 +61,6 @@ dependencies {
 
     implementation 'io.paperdb:paperdb:2.6'
     implementation 'com.google.code.gson:gson:2.8.6'
-    implementation 'com.google.gms:play-services-location:17.0.0'
     implementation 'com.karumi:dexter:6.0.1'
     implementation 'com.jakewharton:butterknife:10.1.0'
     annotationProcessor 'com.jakewharton:butterknife-compiler:10.1.0'

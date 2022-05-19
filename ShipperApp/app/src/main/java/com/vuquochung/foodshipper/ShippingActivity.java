@@ -10,6 +10,7 @@ import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
+import android.location.Location;
 import android.os.Bundle;
 import android.os.Looper;
 import android.text.TextUtils;
@@ -43,6 +44,8 @@ import com.karumi.dexter.listener.PermissionGrantedResponse;
 import com.karumi.dexter.listener.PermissionRequest;
 import com.karumi.dexter.listener.single.PermissionListener;
 import com.vuquochung.foodshipper.common.Common;
+import com.vuquochung.foodshipper.common.LatLngInterpolator;
+import com.vuquochung.foodshipper.common.MarkerAnimation;
 import com.vuquochung.foodshipper.databinding.ActivityShippingBinding;
 import com.vuquochung.foodshipper.model.ShippingOrderModel;
 
@@ -68,11 +71,19 @@ public class ShippingActivity extends FragmentActivity implements OnMapReadyCall
     TextView txt_address;
     TextView txt_date;
 
+    @BindView(R.id.btn_start_trip)
     MaterialButton btn_start_trip;
+    @BindView(R.id.btn_call)
     MaterialButton btn_call;
+    @BindView(R.id.btn_done)
     MaterialButton btn_done;
 
+    @BindView(R.id.img_food_image)
     ImageView img_food_image;
+
+    private boolean isInit = false;
+    private Location previousLocation=null;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -176,11 +187,25 @@ public class ShippingActivity extends FragmentActivity implements OnMapReadyCall
                     shipperMarker = mMap.addMarker(new MarkerOptions()
                             .icon(BitmapDescriptorFactory.fromBitmap(resized))
                             .position(locationshipper).title("You"));
+                    mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(locationshipper, 15));
                 }
                 else{
                     shipperMarker.setPosition(locationshipper);
                 }
-                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(locationshipper,15));
+                if(isInit && previousLocation != null) {
+                    LatLng previousLocationLatLng = new LatLng(previousLocation.getLatitude(),
+                            previousLocation.getLongitude());
+                    MarkerAnimation.animateMarkerToGB(shipperMarker, locationshipper, new LatLngInterpolator.Spherical());
+
+                    shipperMarker.setRotation(Common.getBearing(previousLocationLatLng,locationshipper));
+                    mMap.animateCamera(CameraUpdateFactory.newLatLng(locationshipper));
+
+                    previousLocation = locationResult.getLastLocation();
+                }
+                if(!isInit) {
+                    isInit = true;
+                    previousLocation = locationResult.getLastLocation();
+                }
             }
         };
     }

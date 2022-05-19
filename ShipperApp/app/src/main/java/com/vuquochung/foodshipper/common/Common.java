@@ -33,6 +33,7 @@ public class Common {
     public static final String NOTI_CONTENT = "content";
     public static final String TOKEN_REF = "Tokens";
     public static final String SHIPPING_ORDER_REF = "ShippingOrder";
+    public static final String SHIPPING_ORDER_DATA = "ShippingData";
     public static ShipperUserModel currentShipperUser;
     public static final int DEFAULT_COLUMN_COUNT = 0;
     public static final int FULL_WIDTH_COLUMN = 1;
@@ -107,11 +108,11 @@ public class Common {
         notificationManager.notify(id,notification);
     }
 
-    public static void updateToken(Context context,String newToken) {
+    public static void updateToken(Context context,String newToken,boolean isServer, boolean isShipper) {
         FirebaseDatabase.getInstance()
                 .getReference(Common.TOKEN_REF)
                 .child(Common.currentShipperUser.getUid())
-                .setValue(new TokenModel(Common.currentShipperUser.getPhone(),newToken))
+                .setValue(new TokenModel(Common.currentShipperUser.getPhone(),newToken,isServer,isShipper))
                 .addOnFailureListener(e -> {
                     Toast.makeText(context,""+e.getMessage(),Toast.LENGTH_SHORT).show();
                 });

@@ -6,9 +6,12 @@ import android.view.View;
 import android.view.Menu;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.navigation.NavigationView;
 
+import androidx.annotation.IdRes;
 import androidx.annotation.NonNull;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
@@ -17,6 +20,9 @@ import androidx.navigation.ui.NavigationUI;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.firebase.iid.internal.FirebaseInstanceIdInternal;
+import com.google.firebase.installations.FirebaseInstallations;
+import com.google.firebase.messaging.FirebaseMessaging;
 import com.vuquochung.foodshipper.common.Common;
 import com.vuquochung.foodshipper.databinding.ActivityHomeBinding;
 
@@ -39,6 +45,8 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         DrawerLayout drawer = binding.drawerLayout;
         navigationView = binding.navView;
 
+        updateToken();
+
         // Passing each menu ID as a set of Ids because each
         // menu should be considered as top level destinations.
 
@@ -51,6 +59,14 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         NavigationUI.setupWithNavController(navigationView, navController);
         navigationView.setNavigationItemSelectedListener(this);
         navigationView.bringToFront();
+    }
+
+    private void updateToken() {
+        FirebaseInstallations.getInstance().getId()
+                .addOnFailureListener(e -> Toast.makeText(HomeActivity.this,""+e.getMessage(),Toast.LENGTH_SHORT).show())
+                .addOnSuccessListener(s -> {
+                    Common.updateToken(HomeActivity.this, FirebaseMessaging.getInstance().getToken().getResult(),false,true);
+                });
     }
 
     @Override

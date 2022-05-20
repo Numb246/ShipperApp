@@ -2,7 +2,7 @@ package com.vuquochung.foodshipper.model;
 
 public class TokenModel {
     private String phone,token;
-    private boolean serverToken, shipperToken;
+    private boolean serverToken,shipperToken;
 
     public TokenModel() {
     }
@@ -30,11 +30,19 @@ public class TokenModel {
         this.token = token;
     }
 
-    public boolean isServerToken() { return serverToken; }
+    public boolean isServerToken() {
+        return serverToken;
+    }
 
-    public void setServerToken(boolean serverToken) { this.serverToken = serverToken; }
+    public void setServerToken(boolean serverToken) {
+        this.serverToken = serverToken;
+    }
 
-    public boolean isShipperToken() { return shipperToken; }
+    public boolean isShipperToken() {
+        return shipperToken;
+    }
 
-    public void setShipperToken(boolean shipperToken) { this.shipperToken = shipperToken; }
+    public void setShipperToken(boolean shipperToken) {
+        this.shipperToken = shipperToken;
+    }
 }

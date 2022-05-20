@@ -6,6 +6,8 @@ import android.view.View;
 import android.view.Menu;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.navigation.NavigationView;
 
@@ -17,6 +19,7 @@ import androidx.navigation.ui.NavigationUI;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.firebase.messaging.FirebaseMessaging;
 import com.vuquochung.foodshipper.common.Common;
 import com.vuquochung.foodshipper.databinding.ActivityHomeBinding;
 
@@ -35,6 +38,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         setContentView(binding.getRoot());
 
         setSupportActionBar(binding.appBarHome.toolbar);
+        updateToken();
         Toast.makeText(this, Common.currentShipperUser.getPhone(),Toast.LENGTH_SHORT).show();
         DrawerLayout drawer = binding.drawerLayout;
         navigationView = binding.navView;
@@ -51,6 +55,16 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         NavigationUI.setupWithNavController(navigationView, navController);
         navigationView.setNavigationItemSelectedListener(this);
         navigationView.bringToFront();
+    }
+
+    private void updateToken() {
+        FirebaseMessaging.getInstance().getToken()
+                .addOnFailureListener(e -> {
+                    Toast.makeText(HomeActivity.this,""+e.getMessage(),Toast.LENGTH_SHORT).show();
+                })
+                .addOnSuccessListener(s -> {
+                    Common.updateToken(HomeActivity.this,s,false,true);
+                });
     }
 
     @Override

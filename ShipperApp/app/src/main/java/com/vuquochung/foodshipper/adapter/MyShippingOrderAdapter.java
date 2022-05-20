@@ -68,9 +68,10 @@ public class MyShippingOrderAdapter extends RecyclerView.Adapter<MyShippingOrder
         }
 
         holder.btn_ship_now.setOnClickListener(view ->
-                        Paper.book().write(Common.SHIPPING_ORDER_DATA,new Gson().toJson(shippingOrderModelList.get(position))));
-
-                context.startActivity(new Intent(context, ShippingActivity.class));
+        {
+            Paper.book().write(Common.SHIPPING_ORDER_DATA, new Gson().toJson(shippingOrderModelList.get(position)));
+            context.startActivity(new Intent(context, ShippingActivity.class));
+        });
     }
 
     @Override

@@ -13,6 +13,7 @@ import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.location.Location;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
 import android.util.Log;
@@ -36,6 +37,8 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.material.button.MaterialButton;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -50,12 +53,16 @@ import com.vuquochung.foodshipper.common.LatLngInterpolator;
 import com.vuquochung.foodshipper.common.MarkerAnimation;
 import com.vuquochung.foodshipper.databinding.ActivityShippingBinding;
 import com.vuquochung.foodshipper.model.ShippingOrderModel;
+import com.vuquochung.foodshipper.remote.IGoogleAPI;
+import com.vuquochung.foodshipper.remote.RetrofitClient;
 
 import java.text.SimpleDateFormat;
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import io.paperdb.Paper;
+import io.reactivex.disposables.CompositeDisposable;
 
 public class ShippingActivity extends FragmentActivity implements OnMapReadyCallback {
 
@@ -68,6 +75,17 @@ public class ShippingActivity extends FragmentActivity implements OnMapReadyCall
     private Marker shipperMarker;
     private ShippingOrderModel shippingOrderModel;
 
+    //Animation
+    private Handler handler;
+    private int index, next;
+    private LatLng start, end;
+    private float v;
+    private double lat, lng;
+    private Polyline blackPolyline, greyPolyline;
+    private PolylineOptions polylineOptions, blackPolylineOptions;
+    private List<LatLng> polylineList;
+    private IGoogleAPI iGoogleAPI;
+    private CompositeDisposable compositeDisposable = new CompositeDisposable();
     @BindView(R.id.txt_order_number)
     TextView txt_order_number;
     @BindView(R.id.txt_name)
@@ -97,10 +115,14 @@ public class ShippingActivity extends FragmentActivity implements OnMapReadyCall
         //binding = ActivityShippingBinding.inflate(getLayoutInflater());
         //setContentView(binding.getRoot());
         setContentView(R.layout.activity_shipping);
+
+        iGoogleAPI = RetrofitClient.getInstance().create(IGoogleAPI.class);
+
         ButterKnife.bind(this);
         buildLocationRequest();
         buildLocationCallback();
         setShippingOrder();
+
         Dexter.withActivity(this)
                 .withPermission(Manifest.permission.ACCESS_FINE_LOCATION)
                 .withListener(new PermissionListener() {
@@ -187,25 +209,29 @@ public class ShippingActivity extends FragmentActivity implements OnMapReadyCall
                     int height,width;
                     height=width=80;
                     BitmapDrawable bitmapDrawable=(BitmapDrawable) ContextCompat
-                            .getDrawable(ShippingActivity.this,R.drawable.shipper);
+                            .getDrawable(ShippingActivity.this,R.drawable.shipper_running_removebg_preview);
                     Bitmap resized=Bitmap.createScaledBitmap(bitmapDrawable.getBitmap(),width,height,false);
                     shipperMarker=mMap.addMarker(new MarkerOptions()
                             .icon(BitmapDescriptorFactory.fromBitmap(resized))
                             .position(locationShipper).title("You"));
-                    mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(locationShipper,15));
+                    mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(locationShipper,18));
                 }
-                else
-                {
-                    shipperMarker.setPosition(locationShipper);
 
-                }
                 if(isInit && previousLocation != null)
                 {
-                    LatLng previousLocationLatLng=new LatLng(previousLocation.getLatitude(),
-                            previousLocation.getLongitude());
-                    MarkerAnimation.animateMarkerToGB(shipperMarker,locationShipper,new LatLngInterpolator.Spherical());
-                    shipperMarker.setRotation(Common.getBearing(previousLocationLatLng,locationShipper));
-                    mMap.animateCamera(CameraUpdateFactory.newLatLng(locationShipper));
+                    String from = new StringBuilder()
+                            .append(previousLocation.getLatitude())
+                            .append(",")
+                            .append(previousLocation.getLongitude())
+                            .toString();
+                    String to = new StringBuilder()
+                            .append(locationShipper.latitude)
+                            .append(",")
+                            .append(locationShipper.longitude)
+                            .toString();
+
+                    moveMarkerAnimation(shipperMarker, from, to);
+
                     previousLocation=locationResult.getLastLocation();
                 }
                 if(!isInit)
@@ -215,6 +241,14 @@ public class ShippingActivity extends FragmentActivity implements OnMapReadyCall
                 }
             }
         };
+    }
+
+    private void moveMarkerAnimation(Marker shipperMarker, String from, String to) {
+        //Yêu cầu directions API để lấy dữ liệu
+        compositeDisposable.add(iGoogleAPI.getDirections("driving",
+                "less_driving",
+                from,to,
+                getString(R.string.)))
     }
 
     private void buildLocationRequest() {
@@ -255,6 +289,7 @@ public class ShippingActivity extends FragmentActivity implements OnMapReadyCall
     @Override
     protected void onDestroy() {
         fusedLocationProviderClient.removeLocationUpdates(locationCallback);
+        compositeDisposable.clear();
         super.onDestroy();
     }
 }

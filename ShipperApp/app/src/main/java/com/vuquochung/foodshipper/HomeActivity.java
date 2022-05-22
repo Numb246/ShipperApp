@@ -1,6 +1,8 @@
 package com.vuquochung.foodshipper;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.Menu;
@@ -23,6 +25,8 @@ import com.google.firebase.messaging.FirebaseMessaging;
 import com.vuquochung.foodshipper.common.Common;
 import com.vuquochung.foodshipper.databinding.ActivityHomeBinding;
 
+import io.paperdb.Paper;
+
 public class HomeActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
     private AppBarConfiguration mAppBarConfiguration;
@@ -39,6 +43,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
 
         setSupportActionBar(binding.appBarHome.toolbar);
         updateToken();
+        checkStartTrip();
         Toast.makeText(this, Common.currentShipperUser.getPhone(),Toast.LENGTH_SHORT).show();
         DrawerLayout drawer = binding.drawerLayout;
         navigationView = binding.navView;
@@ -55,6 +60,12 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         NavigationUI.setupWithNavController(navigationView, navController);
         navigationView.setNavigationItemSelectedListener(this);
         navigationView.bringToFront();
+    }
+
+    private void checkStartTrip() {
+        Paper.init(this);
+        if(TextUtils.isEmpty(Paper.book().read(Common.TRIP_START)))
+            startActivity(new Intent(this,ShippingActivity.class));
     }
 
     private void updateToken() {

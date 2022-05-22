@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.vuquochung.foodshipper" >
 
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.INTERNET" />
 
@@ -27,7 +27,7 @@
         -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyCv3JLY34L93cTpFgVu34t4T4UE36XV14I" />
+            android:value="AIzaSyCbF3qHvrd3UOg_V4StDml5aetg4PB1vV4" />
 
         <activity
             android:name=".ShippingActivity"

@@ -15,6 +15,7 @@ import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.StyleSpan;
+import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -26,6 +27,9 @@ import com.vuquochung.foodshipper.R;
 import com.vuquochung.foodshipper.model.ShipperUserModel;
 import com.vuquochung.foodshipper.model.TokenModel;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Common {
     public static final String SHIPPER_REF = "Shippers";
     public static final String CATEGORY_REF = "Category";
@@ -35,6 +39,7 @@ public class Common {
     public static final String TOKEN_REF = "Tokens";
     public static final String SHIPPING_ORDER_REF = "ShippingOrder";
     public static final String SHIPPING_ORDER_DATA = "ShippingData";
+    public static final String TRIP_START = "Trip";
     public static ShipperUserModel currentShipperUser;
     public static final int DEFAULT_COLUMN_COUNT = 0;
     public static final int FULL_WIDTH_COLUMN = 1;
@@ -135,5 +140,38 @@ public class Common {
         else if(begin.latitude<end.latitude && begin.longitude>= end.longitude)
             return (float) ((90-Math.toDegrees(Math.atan(lng/lat)))+270);
         return -1;
+    }
+
+    public static List<LatLng> decodePoly(String encoded) {
+        List<LatLng> poly = new ArrayList<>();
+        int index = 0, len = encoded.length();
+        int lat = 0, lng = 0;
+
+        while (index < len) {
+            int b, shift = 0, result = 0;
+            do {
+                b = encoded.charAt(index++) - 63;
+                result |= (b & 0x1f) << shift;
+                shift += 5;
+            } while (b >= 0x20);
+            int dlat = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
+            lat += dlat;
+
+            shift = 0;
+            result = 0;
+            do {
+                b = encoded.charAt(index++) - 63;
+                result |= (b & 0x1f) << shift;
+                shift += 5;
+            } while (b >= 0x20);
+            int dlng = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
+            lng += dlng;
+
+            LatLng p = new LatLng((((double) lat / 1E5)),
+                    (((double) lng / 1E5)));
+            poly.add(p);
+        }
+
+        return poly;
     }
 }

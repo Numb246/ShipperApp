@@ -10,7 +10,7 @@ public interface IGoogleAPI {
             @Query("mode") String mode,
             @Query("transit_routing_preference") String transit_routing,
             @Query("origin") String from,
-            @Query("to") String to,
+            @Query("destination") String to,
             @Query("key") String key
     );
 }

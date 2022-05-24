@@ -45,6 +45,8 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.maps.model.SquareCap;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.libraries.places.api.Places;
 import com.google.android.libraries.places.api.model.Place;
 import com.google.android.libraries.places.api.net.PlacesClient;
@@ -129,19 +131,22 @@ public class ShippingActivity extends FragmentActivity implements OnMapReadyCall
 
     AutocompleteSupportFragment places_fragment;
     PlacesClient placesClient;
-    List<Place.Field> placeFields= Arrays.asList(Place.Field.ID,
+    List<Place.Field> placeFields = Arrays.asList(Place.Field.ID,
             Place.Field.NAME,
             Place.Field.ADDRESS,
             Place.Field.LAT_LNG);
+    private Polyline redPolyline;
 
     @OnClick(R.id.btn_start_trip)
-    void onStartTripClick(){
-        String data=Paper.book().read(Common.SHIPPING_ORDER_DATA);
-        Paper.book().write(Common.TRIP_START,data);
+    void onStartTripClick() {
+        String data = Paper.book().read(Common.SHIPPING_ORDER_DATA);
+        Paper.book().write(Common.TRIP_START, data);
         btn_start_trip.setEnabled(false);
+        drawRoutes(data);
     }
-    private boolean isInit=false;
-    private Location previousLocation=null;
+
+    private boolean isInit = false;
+    private Location previousLocation = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -157,7 +162,6 @@ public class ShippingActivity extends FragmentActivity implements OnMapReadyCall
         ButterKnife.bind(this);
         buildLocationRequest();
         buildLocationCallback();
-        setShippingOrder();
 
         Dexter.withActivity(this)
                 .withPermission(Manifest.permission.ACCESS_FINE_LOCATION)
@@ -185,7 +189,7 @@ public class ShippingActivity extends FragmentActivity implements OnMapReadyCall
 
                     @Override
                     public void onPermissionDenied(PermissionDeniedResponse response) {
-                        Toast.makeText(ShippingActivity.this,"You must enable this location permission",Toast.LENGTH_SHORT).show();
+                        Toast.makeText(ShippingActivity.this, "You must enable this location permission", Toast.LENGTH_SHORT).show();
                     }
 
                     @Override
@@ -197,50 +201,47 @@ public class ShippingActivity extends FragmentActivity implements OnMapReadyCall
     }
 
     private void setupAutocompletePlaces() {
-        places_fragment=(AutocompleteSupportFragment) getSupportFragmentManager()
+        places_fragment = (AutocompleteSupportFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.places_autocomplete_fragment);
         places_fragment.setPlaceFields(placeFields);
         places_fragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
             @Override
             public void onError(@NonNull Status status) {
-                Toast.makeText(ShippingActivity.this,""+status.getStatusMessage(),Toast.LENGTH_SHORT).show();
+                Toast.makeText(ShippingActivity.this, "" + status.getStatusMessage(), Toast.LENGTH_SHORT).show();
             }
 
             @Override
             public void onPlaceSelected(@NonNull Place place) {
-                Toast.makeText(ShippingActivity.this,new StringBuilder(place.getName())
+                Toast.makeText(ShippingActivity.this, new StringBuilder(place.getName())
                         .append("-")
-                        .append(place.getLatLng().toString()),Toast.LENGTH_SHORT).show();
+                        .append(place.getLatLng().toString()), Toast.LENGTH_SHORT).show();
             }
         });
     }
 
     private void initPlaces() {
-        Places.initialize(this,getString(R.string.google_maps_api));
-        placesClient=Places.createClient(this);
+        Places.initialize(this, getString(R.string.google_maps_api));
+        placesClient = Places.createClient(this);
     }
 
 
     private void setShippingOrder() {
         Paper.init(this);
         String data;
-        if(TextUtils.isEmpty(Paper.book().read(Common.TRIP_START)))
-        {
+        if (TextUtils.isEmpty(Paper.book().read(Common.TRIP_START))) {
             btn_start_trip.setEnabled(true);
-           data = Paper.book().read(Common.SHIPPING_ORDER_DATA);
-        }
-        else
-        {
+            data = Paper.book().read(Common.SHIPPING_ORDER_DATA);
+        } else {
             btn_start_trip.setEnabled(false);
             data = Paper.book().read(Common.TRIP_START);
         }
         //Toast.makeText(ShippingActivity.this,data,Toast.LENGTH_LONG).show();
-        if(!TextUtils.isEmpty(data))
-        {
-            shippingOrderModel=new Gson()
-                    .fromJson(data,new TypeToken<ShippingOrderModel>(){}.getType());
-            if(shippingOrderModel!=null)
-            {
+        if (!TextUtils.isEmpty(data)) {
+            drawRoutes(data);
+            shippingOrderModel = new Gson()
+                    .fromJson(data, new TypeToken<ShippingOrderModel>() {
+                    }.getType());
+            if (shippingOrderModel != null) {
                 Common.setSpanStringColor("Name: ",
                         shippingOrderModel.getOrderModel().getUserName(),
                         txt_name,
@@ -261,11 +262,76 @@ public class ShippingActivity extends FragmentActivity implements OnMapReadyCall
                                 .getFoodImage())
                         .into(img_food_image);
             }
+        } else {
+            Toast.makeText(ShippingActivity.this, "Shipping order is null", Toast.LENGTH_SHORT).show();
         }
-        else
-        {
-            Toast.makeText(ShippingActivity.this,"Shipping order is null",Toast.LENGTH_SHORT).show();
+    }
+
+    private void drawRoutes(String data) {
+        ShippingOrderModel shippingOrderModel = new Gson()
+                .fromJson(data, new TypeToken<ShippingOrderModel>() {
+                }.getType());
+        mMap.addMarker(new MarkerOptions()
+                .icon(BitmapDescriptorFactory.fromResource(R.drawable.box))
+                .title(shippingOrderModel.getOrderModel().getUserName())
+                .snippet(shippingOrderModel.getOrderModel().getShippingAddress())
+                .position(new LatLng(shippingOrderModel.getOrderModel().getLat(),
+                        shippingOrderModel.getOrderModel().getLng())));
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
         }
+        fusedLocationProviderClient.getLastLocation()
+                .addOnFailureListener(e -> Toast.makeText(ShippingActivity.this, "" + e.getMessage(), Toast.LENGTH_SHORT).show())
+                .addOnSuccessListener(location -> {
+                    String to=new StringBuilder()
+                            .append(shippingOrderModel.getOrderModel().getLat())
+                            .append(",")
+                            .append(shippingOrderModel.getOrderModel().getLng())
+                            .toString();
+                    String from = new StringBuilder()
+                            .append(location.getLatitude())
+                            .append(",")
+                            .append(location.getLongitude())
+                            .toString();
+                    compositeDisposable.add(iGoogleAPI.getDirections("driving",
+                            "less_driving",
+                            from,to,
+                            getString(R.string.google_maps_api))
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(s -> {
+                        try {
+                            JSONObject jsonObject=new JSONObject(s);
+                            JSONArray jsonArray=jsonObject.getJSONArray("routes");
+                            for(int i=0;i<jsonArray.length();i++)
+                            {
+                                JSONObject route=jsonArray.getJSONObject(i);
+                                JSONObject poly=route.getJSONObject("overview_polyline");
+                                String polyline=poly.getString("points");
+                                polylineList=Common.decodePoly(polyline);
+                            }
+                            polylineOptions=new PolylineOptions();
+                            polylineOptions.color(Color.RED);
+                            polylineOptions.width(12);
+                            polylineOptions.startCap(new SquareCap());
+                            polylineOptions.jointType(JointType.ROUND);
+                            polylineOptions.addAll(polylineList);
+                            redPolyline=mMap.addPolyline(polylineOptions);
+                        }
+                        catch (Exception e)
+                        {
+                            Toast.makeText(this,""+e.getMessage(),Toast.LENGTH_SHORT).show();
+                        }
+                    }, throwable -> Toast.makeText(ShippingActivity.this,""+throwable.getMessage(),Toast.LENGTH_SHORT).show()));
+                });
+
     }
 
     private void buildLocationCallback() {
@@ -334,7 +400,7 @@ public class ShippingActivity extends FragmentActivity implements OnMapReadyCall
                                 String polyline=poly.getString("points");
                                 //Toast.makeText(ShippingActivity.this,polyline,Toast.LENGTH_LONG).show();
                                 polylineList=Common.decodePoly(polyline);
-                                //Toast.makeText(ShippingActivity.this,polylineList+" ADSa",Toast.LENGTH_LONG).show();
+                                Toast.makeText(ShippingActivity.this,polylineList+" ADSa",Toast.LENGTH_LONG).show();
                             }
                             polylineOptions=new PolylineOptions();
                             polylineOptions.color(Color.GRAY);
@@ -431,6 +497,8 @@ public class ShippingActivity extends FragmentActivity implements OnMapReadyCall
         @Override
         public void onMapReady(GoogleMap googleMap) {
             mMap = googleMap;
+            setShippingOrder();
+
 
             mMap.getUiSettings().setZoomControlsEnabled(true);
             try {

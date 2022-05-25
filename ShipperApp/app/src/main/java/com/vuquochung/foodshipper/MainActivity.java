@@ -55,11 +55,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         init();
-
-        //Delete data offline
-//        Paper.init(this);
-//        Paper.book().delete(Common.TRIP_START);
-//        Paper.book().delete(Common.SHIPPING_ORDER_DATA);
+        //Paper.init(this);
+        //Paper.book().delete(Common.TRIP_START);
+        //Paper.book().delete(Common.SHIPPING_ORDER_DATA);
     }
     private void init(){
         providers= Arrays.asList(new AuthUI.IdpConfig.PhoneBuilder().build());

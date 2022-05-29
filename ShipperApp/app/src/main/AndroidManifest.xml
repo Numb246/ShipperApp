@@ -28,7 +28,7 @@
         -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyADWEiQhHDlmxipcu4AgudsirIJDA_8D1s"/>
+            android:value="AIzaSyBV_xjwoEw8ulQM9RSA0VlqZ4fT5Rx-jto"/>
 
         <activity
             android:name=".ShippingActivity"

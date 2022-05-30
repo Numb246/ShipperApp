@@ -1,5 +1,6 @@
 package com.vuquochung.foodshipper.ui.home;
 
+import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -38,7 +39,9 @@ public class HomeViewModel extends ViewModel implements IShippingOrderCallbackLi
     }
 
     public MutableLiveData<List<ShippingOrderModel>> getShippingOrderMutableData(String shipperPhone) {
-        loadOrderByShipper(shipperPhone);
+        //Fix crash when we back button - put app to background
+        if(shipperPhone !=null && !TextUtils.isEmpty(shipperPhone))
+             loadOrderByShipper(shipperPhone);
         return shippingOrderMutableData;
     }
 

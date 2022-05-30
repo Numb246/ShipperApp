@@ -235,7 +235,9 @@ public class ShippingActivity extends FragmentActivity implements OnMapReadyCall
                        update_data.put("estimateTime",estimateTime);
 
                        FirebaseDatabase.getInstance()
-                               .getReference(Common.SHIPPING_ORDER_REF)
+                               .getReference(Common.RESTAURANT_REF)
+                               .child(Common.currentRestaurant.getUid())
+                               .child(Common.SHIPPING_ORDER_REF)
                                .child(shippingOrderModel.getKey())
                                .updateChildren(update_data)
                                .addOnFailureListener(new OnFailureListener() {
@@ -588,7 +590,9 @@ public class ShippingActivity extends FragmentActivity implements OnMapReadyCall
                             update_data.put("estimateTime",estimateTime);
 
                             FirebaseDatabase.getInstance()
-                                    .getReference(Common.SHIPPING_ORDER_REF)
+                                    .getReference(Common.RESTAURANT_REF)
+                                    .child(Common.currentRestaurant.getUid())
+                                    .child(Common.SHIPPING_ORDER_REF)
                                     .child(shippingOrderModel.getKey())
                                     .updateChildren(update_data)
                                     .addOnFailureListener(new OnFailureListener() {

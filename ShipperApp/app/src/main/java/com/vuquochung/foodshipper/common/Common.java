@@ -25,6 +25,7 @@ import androidx.core.app.NotificationCompat;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.database.FirebaseDatabase;
 import com.vuquochung.foodshipper.R;
+import com.vuquochung.foodshipper.model.RestaurantModel;
 import com.vuquochung.foodshipper.model.ShipperUserModel;
 import com.vuquochung.foodshipper.model.TokenModel;
 
@@ -41,9 +42,12 @@ public class Common {
     public static final String SHIPPING_ORDER_REF = "ShippingOrder";
     public static final String SHIPPING_ORDER_DATA = "ShippingData";
     public static final String TRIP_START = "Trip";
+    public static final String RESTAURANT_REF = "Restaurant";
+    public static final String RESTAURANT_SAVE = "RESTAURANT_SAVE";
     public static ShipperUserModel currentShipperUser;
     public static final int DEFAULT_COLUMN_COUNT = 0;
     public static final int FULL_WIDTH_COLUMN = 1;
+    public static RestaurantModel currentRestaurant;
 
     public static void setSpanString(String welcome, String name, TextView textView)
     {

@@ -1,5 +1,6 @@
 package com.vuquochung.foodshipper;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -14,6 +15,7 @@ import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.navigation.NavigationView;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
@@ -21,6 +23,7 @@ import androidx.navigation.ui.NavigationUI;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.vuquochung.foodshipper.common.Common;
 import com.vuquochung.foodshipper.databinding.ActivityHomeBinding;
@@ -33,6 +36,8 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
     private ActivityHomeBinding binding;
     private NavigationView navigationView;
     private NavController navController;
+    private DrawerLayout drawer;
+    private int menuClickId = -1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,7 +50,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         updateToken();
         checkStartTrip();
         Toast.makeText(this, Common.currentShipperUser.getPhone(),Toast.LENGTH_SHORT).show();
-        DrawerLayout drawer = binding.drawerLayout;
+        drawer = binding.drawerLayout;
         navigationView = binding.navView;
 
         // Passing each menu ID as a set of Ids because each
@@ -60,6 +65,8 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         NavigationUI.setupWithNavController(navigationView, navController);
         navigationView.setNavigationItemSelectedListener(this);
         navigationView.bringToFront();
+
+
     }
 
     private void checkStartTrip() {
@@ -93,10 +100,44 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         item.setChecked(true);
-
+        drawer.closeDrawers();
+        switch (item.getItemId())
+        {
+            case R.id.nav_sign_out:
+                signOut();
+                break;
+        }
+        menuClickId=item.getItemId();
         return true;
     }
 
+    private void signOut() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Signout")
+                .setMessage("Do you want to sign out?")
+                .setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        dialogInterface.dismiss();
+                    }
+                }).setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        Common.currentRestaurant = null;
+                        Common.currentShipperUser = null;
+                        Paper.init(HomeActivity.this);
+                        Paper.book().delete(Common.RESTAURANT_SAVE);
+                        FirebaseAuth.getInstance().signOut();
+
+                        Intent intent = new Intent(HomeActivity.this,MainActivity.class);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                        startActivity(intent);
+                        finish();
+                    }
+                });
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
 
 
 }

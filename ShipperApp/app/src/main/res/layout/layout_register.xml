@@ -20,6 +20,7 @@
 
     <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
+        android:id="@+id/phone_input_layout"
         android:layout_height="wrap_content">
 
         <EditText

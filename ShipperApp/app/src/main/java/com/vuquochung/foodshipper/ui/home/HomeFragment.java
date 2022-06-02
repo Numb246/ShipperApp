@@ -21,6 +21,11 @@ import com.vuquochung.foodshipper.R;
 import com.vuquochung.foodshipper.adapter.MyShippingOrderAdapter;
 import com.vuquochung.foodshipper.common.Common;
 import com.vuquochung.foodshipper.databinding.FragmentHomeBinding;
+import com.vuquochung.foodshipper.model.eventbus.UpdateShippingOrderEvent;
+
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -65,6 +70,27 @@ public class HomeFragment extends Fragment {
         recycler_order.addItemDecoration(new DividerItemDecoration(getContext(),layoutManager.getOrientation()));
         layoutAnimationController= AnimationUtils.loadLayoutAnimation(getContext(), R.anim.layout_slide_from_left);
     }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        EventBus.getDefault().register(this);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        if(EventBus.getDefault().hasSubscriberForEvent(UpdateShippingOrderEvent.class))
+            EventBus.getDefault().removeStickyEvent(UpdateShippingOrderEvent.class);
+        EventBus.getDefault().unregister(this);
+    }
+
+    @Subscribe(sticky = true,threadMode = ThreadMode.MAIN)
+    public void onUpdateShippingOrder(UpdateShippingOrderEvent event)
+    {
+        homeViewModel.getShippingOrderMutableData(Common.currentShipperUser.getPhone());
+    }
+
     @Override
     public void onDestroyView() {
         super.onDestroyView();

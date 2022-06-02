@@ -1,12 +1,14 @@
 package com.vuquochung.foodshipper;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
 
 import android.Manifest;
 import android.animation.ValueAnimator;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
@@ -55,7 +57,10 @@ import com.google.android.libraries.places.api.net.PlacesClient;
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
 import com.google.android.material.button.MaterialButton;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.reflect.TypeToken;
@@ -70,12 +75,18 @@ import com.vuquochung.foodshipper.common.Common;
 import com.vuquochung.foodshipper.common.LatLngInterpolator;
 import com.vuquochung.foodshipper.common.MarkerAnimation;
 import com.vuquochung.foodshipper.databinding.ActivityShippingBinding;
+import com.vuquochung.foodshipper.model.FCMSenData;
 import com.vuquochung.foodshipper.model.ShippingOrderModel;
+import com.vuquochung.foodshipper.model.TokenModel;
+import com.vuquochung.foodshipper.model.eventbus.UpdateShippingOrderEvent;
+import com.vuquochung.foodshipper.remote.IFCMService;
 import com.vuquochung.foodshipper.remote.IGoogleAPI;
 import com.vuquochung.foodshipper.remote.RetrofitClient;
+import com.vuquochung.foodshipper.remote.RetrofitFCMClient;
 
 import net.cachapa.expandablelayout.ExpandableLayout;
 
+import org.greenrobot.eventbus.EventBus;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -116,6 +127,7 @@ public class ShippingActivity extends FragmentActivity implements OnMapReadyCall
     private PolylineOptions polylineOptions, blackPolylineOptions;
     private List<LatLng> polylineList;
     private IGoogleAPI iGoogleAPI;
+    private IFCMService ifcmService;
     private CompositeDisposable compositeDisposable = new CompositeDisposable();
     @BindView(R.id.txt_order_number)
     TextView txt_order_number;
@@ -180,6 +192,97 @@ public class ShippingActivity extends FragmentActivity implements OnMapReadyCall
             intent.setData(Uri.parse(new StringBuilder("tel: ")
                     .append(shippingOrderModel.getOrderModel().getUserPhone()).toString()));
             startActivity(intent);
+        }
+    }
+
+    @OnClick(R.id.btn_done)
+    void onDoneClick(){
+        if(shippingOrderModel != null)
+        {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this)
+                    .setTitle("Done order")
+                    .setMessage("Confirm you already shipped this order")
+                    .setNegativeButton("Cancel", (dialogInterface, i) -> dialogInterface.dismiss())
+                    .setPositiveButton("Yes", (dialogInterface, i) -> {
+                        AlertDialog dialog = new AlertDialog.Builder(this)
+                                .setCancelable(false)
+                                .setMessage("Waiting...")
+                                .create();
+                        Map<String,Object> update_data = new HashMap<>();
+                        update_data.put("orderStatus",2);
+                        update_data.put("shipperUid",Common.currentShipperUser.getUid());
+
+                        FirebaseDatabase.getInstance()
+                                .getReference(Common.RESTAURANT_REF)
+                                .child(shippingOrderModel.getRestaurantKey())
+                                .child(Common.ORDER_REF)
+                                .child(shippingOrderModel.getOrderModel().getKey())
+                                .updateChildren(update_data)
+                                .addOnFailureListener(e -> Toast.makeText(ShippingActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show())
+                                .addOnSuccessListener(unused -> {
+                                    FirebaseDatabase.getInstance()
+                                            .getReference(Common.RESTAURANT_REF)
+                                            .child(shippingOrderModel.getRestaurantKey())
+                                            .child(Common.SHIPPING_ORDER_REF)
+                                            .child(shippingOrderModel.getOrderModel().getKey())
+                                            .removeValue()
+                                            .addOnFailureListener(e -> Toast.makeText(ShippingActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show())
+                                            .addOnSuccessListener(unused1 -> {
+                                                FirebaseDatabase.getInstance()
+                                                        .getReference(Common.TOKEN_REF)
+                                                        .child(shippingOrderModel.getOrderModel().getUseId())
+                                                        .addListenerForSingleValueEvent(new ValueEventListener() {
+                                                            @Override
+                                                            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                                                if(snapshot.exists())
+                                                                {
+                                                                    TokenModel tokenModel=snapshot.getValue(TokenModel.class);
+                                                                    Map<String,String> notiData=new HashMap<>();
+                                                                    notiData.put(Common.NOTI_TITLE,"Your order has been shipped ");
+                                                                    notiData.put(Common.NOTI_CONTENT,new StringBuilder("Your order has been shipped by shipper")
+                                                                            .append(Common.currentShipperUser.getPhone()).toString());
+                                                                    FCMSenData senData=new FCMSenData(tokenModel.getToken(),notiData);
+                                                                    compositeDisposable.add(ifcmService.sendNotification(senData)
+                                                                            .subscribeOn(Schedulers.io())
+                                                                            .observeOn(AndroidSchedulers.mainThread())
+                                                                            .subscribe(fcmResponse -> {
+                                                                                dialog.dismiss();
+                                                                                if(fcmResponse.getSuccess()==1)
+                                                                                {
+                                                                                    Toast.makeText(ShippingActivity.this, "Finish!", Toast.LENGTH_SHORT).show();
+                                                                                }
+                                                                                else
+                                                                                {
+                                                                                    Toast.makeText(ShippingActivity.this, "Update order success! But failed to send notification", Toast.LENGTH_SHORT).show();
+                                                                                }
+                                                                                if(!TextUtils.isEmpty(Paper.book().read(Common.TRIP_START)))
+                                                                                    Paper.book().delete(Common.TRIP_START);
+                                                                                EventBus.getDefault().postSticky(new UpdateShippingOrderEvent());
+                                                                                finish();
+                                                                            }, throwable -> {
+                                                                                dialog.dismiss();
+                                                                                Toast.makeText(ShippingActivity.this,""+throwable.getMessage(),Toast.LENGTH_SHORT).show();
+                                                                            }));
+                                                                }
+                                                                else
+                                                                {
+                                                                    dialog.dismiss();
+                                                                    Toast.makeText(ShippingActivity.this,"Token not found",Toast.LENGTH_SHORT).show();
+                                                                }
+                                                            }
+
+                                                            @Override
+                                                            public void onCancelled(@NonNull DatabaseError error) {
+                                                                dialog.dismiss();
+                                                                Toast.makeText(ShippingActivity.this,""+error,Toast.LENGTH_SHORT).show();
+
+                                                            }
+                                                        });
+                                            });
+                                });
+                    });
+            AlertDialog dialog = builder.create();
+            dialog.show();
         }
     }
 
@@ -271,6 +374,7 @@ public class ShippingActivity extends FragmentActivity implements OnMapReadyCall
         setContentView(R.layout.activity_shipping);
 
         iGoogleAPI = RetrofitClient.getInstance().create(IGoogleAPI.class);
+        ifcmService= RetrofitFCMClient.getInstance().create(IFCMService.class);
         initPlaces();
         setupAutocompletePlaces();
         ButterKnife.bind(this);

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">FoodShipper</string>
+    <string name="action_settings">Cài đặt</string>
+    <string name="menu_home">Trang chủ</string>
+    <string name="menu_exit">Đăng xuất</string>
+</resources>

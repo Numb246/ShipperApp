@@ -141,7 +141,7 @@ public class MainActivity extends AppCompatActivity {
                 .createSignInIntentBuilder()
                 .setAvailableProviders(providers)
                 .setTheme(R.style.LoginTheme)
-                .setLogo(R.drawable.logo)
+                //.setLogo(R.drawable.logo)
                 .build(),APP_REQUEST_CODE);
     }
 

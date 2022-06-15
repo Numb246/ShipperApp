@@ -30,7 +30,7 @@
         -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyBV_xjwoEw8ulQM9RSA0VlqZ4fT5Rx-jto" />
+            android:value="AIzaSyCGcu_DMCODSgv0PmpvOYlWFBaY48V6a24" />
 
         <activity
             android:name=".ShippingActivity"

@@ -45,8 +45,8 @@
 	- Đăng xuất
 ### Thông tin nhóm:
 ###### Lớp
-- SE113.M22.PMCL
-###### Giáo viên hướng dẫn:
+- SE114.M22.PMCL
+###### Giảng viên hướng dẫn:
 - Nguyễn Tấn Toàn
 ###### Thành viên trong nhóm 7
 - Vũ Quang Huy 20521419
